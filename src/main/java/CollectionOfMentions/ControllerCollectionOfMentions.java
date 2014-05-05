@@ -7,15 +7,13 @@ package CollectionOfMentions;
 
 import APICalls.MsgInterrupt;
 import APICalls.MsgLaunchCollectionMentionsTwitter;
+import Control.SenderMsgToCentralServer;
 import Model.AccessTokenPlus;
 import Model.Job;
 import Model.JobInfo;
 import Model.Session;
 import Model.TwitterStatus;
-import OAuth.GetFreshTokens;
 import OAuth.MyOwnTwitterFactory;
-import OAuth.TokenReleaser;
-import Persistence.MongoMorphia;
 import Singletons.SharedMongoMorphiaInstance;
 import Utils.ConvertStatus;
 import akka.actor.UntypedActor;
@@ -24,18 +22,12 @@ import com.google.code.morphia.query.Query;
 import com.google.code.morphia.query.UpdateOperations;
 import java.util.ArrayList;
 import java.util.List;
-import javax.ejb.EJB;
-import javax.ejb.Startup;
-import javax.faces.bean.ApplicationScoped;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ManagedProperty;
 import org.joda.time.DateTime;
 import twitter4j.FilterQuery;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.StatusListener;
-import twitter4j.Twitter;
 import twitter4j.TwitterStream;
 import twitter4j.auth.AccessToken;
 
@@ -78,7 +70,6 @@ import twitter4j.auth.AccessToken;
  Contributor(s): Clement Levallois
 
  */
-
 public class ControllerCollectionOfMentions extends UntypedActor {
 
     private String mention;
@@ -113,7 +104,6 @@ public class ControllerCollectionOfMentions extends UntypedActor {
     private String idGephi;
     private Long jobStart;
 
-    
     public ControllerCollectionOfMentions() {
     }
 
@@ -154,6 +144,11 @@ public class ControllerCollectionOfMentions extends UntypedActor {
             run();
             System.out.println("run has returned!");
 
+            //Send msg to central server about completion.
+            SenderMsgToCentralServer sender = new SenderMsgToCentralServer();
+            sender.streamIsTerminatedOK();
+            
+            
             //stop the current actor
             getContext().stop(getSelf());
 
@@ -191,16 +186,19 @@ public class ControllerCollectionOfMentions extends UntypedActor {
                     //**************************************
                     //saving statuses to the db.
                     List<TwitterStatus> twitterStatuses = new ConvertStatus().convertAllToTwitterStatus(statuses);
-                    opsJob = dsJobs.createUpdateOperations(Job.class).addAll("twitterJob.statuses", twitterStatuses, true);
-                    dsJobs.update(updateQueryJob, opsJob);
-
+                    if (!twitterStatuses.isEmpty()) {
+                        opsJob = dsJobs.createUpdateOperations(Job.class).addAll("statuses", twitterStatuses, true);
+                        dsJobs.update(updateQueryJob, opsJob);
+                    }
                     //updating progress a last time;
                     Long progressLong = (Long) ((System.currentTimeMillis() - startDateTime.getMillis()) * 100 / (stopTime - startDateTime.getMillis()));
                     System.out.println("progress before closing: " + progressLong);
 
                     Integer progress = progressLong.intValue();
-                    opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress);
-                    dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
+                    if (progress < 100) {
+                        opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress);
+                        dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
+                    }
                     //**************************************
 
                     //recording the time when the job ended
@@ -233,7 +231,7 @@ public class ControllerCollectionOfMentions extends UntypedActor {
                         //**************************************
                         //saving statuses to the db.
                         List<TwitterStatus> twitterStatuses = new ConvertStatus().convertAllToTwitterStatus(statuses);
-                        opsJob = dsJobs.createUpdateOperations(Job.class).addAll("twitterJob.statuses", twitterStatuses, true);
+                        opsJob = dsJobs.createUpdateOperations(Job.class).addAll("statuses", twitterStatuses, true);
                         dsJobs.update(updateQueryJob, opsJob);
 
                         statuses = new ArrayList();
@@ -291,6 +289,13 @@ public class ControllerCollectionOfMentions extends UntypedActor {
         } catch (InterruptedException e) {
         }
         System.out.println("returning statuses");
-        twitterStream.shutdown();
+        try {
+            twitterStream.shutdown();
+        } catch (Exception e) {
+            System.out.println("exception when shutdown of twitter stream");
+            System.out.println("error: " + e.getMessage());
+        }
+        System.out.println("shutdown of twitter stream was successful");
+
     }
 }

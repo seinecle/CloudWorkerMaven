@@ -33,11 +33,12 @@ public class LaunchStreamResource {
 
     @Context
     private UriInfo context;
+    
+    public static String app;
+    public static String idGephi;
+    public static String jobStart;
 
 
-    /**
-     * Creates a new instance of LaunchStreamResource
-     */
     public LaunchStreamResource() {
     }
 
@@ -49,8 +50,12 @@ public class LaunchStreamResource {
     @Path("/get")
     @GET
     @Produces("text/plain")
-    public String getText(@QueryParam("mention") String mention, @QueryParam("idGephi") String idGephi, @QueryParam("jobStart") String jobStart, @QueryParam("terminate") String terminate, @QueryParam("fromHourString") String fromHourString, @QueryParam("fromDayString") String fromDayString, @QueryParam("fromMonthString") String fromMonthString, @QueryParam("fromYearString") String fromYearString, @QueryParam("forMinutesString") String forMinutesString, @QueryParam("forHoursString") String forHoursString, @QueryParam("forDaysString") String forDaysString, @QueryParam("nowString") String nowString) {
+    public String getText(@QueryParam("app") String app,@QueryParam("mention") String mention, @QueryParam("idGephi") String idGephi, @QueryParam("jobStart") String jobStart, @QueryParam("terminate") String terminate, @QueryParam("fromHourString") String fromHourString, @QueryParam("fromDayString") String fromDayString, @QueryParam("fromMonthString") String fromMonthString, @QueryParam("fromYearString") String fromYearString, @QueryParam("forMinutesString") String forMinutesString, @QueryParam("forHoursString") String forHoursString, @QueryParam("forDaysString") String forDaysString, @QueryParam("nowString") String nowString) {
         System.out.println("mention: " + mention);
+        System.out.println("app: " + app);
+        this.app = app;
+        this.idGephi = idGephi;
+        this.jobStart = jobStart;
 
         Controller controller = new Controller();
         controller.execute(mention, idGephi, jobStart, terminate, fromHourString, fromDayString, fromMonthString, fromYearString, forMinutesString, forHoursString, forDaysString, nowString);

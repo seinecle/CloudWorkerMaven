@@ -3,13 +3,19 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Model;
+package Control;
 
-import com.google.code.morphia.annotations.Embedded;
-import com.google.code.morphia.annotations.Id;
-import java.util.ArrayList;
-import java.util.List;
-import org.bson.types.ObjectId;
+import REST.LaunchStreamResource;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
 /*
  Copyright 2008-2013 Clement Levallois
@@ -50,49 +56,27 @@ import org.bson.types.ObjectId;
  Contributor(s): Clement Levallois
 
  */
-public class Job {
+public class SenderMsgToCentralServer {
 
-    @Id
-    private ObjectId id;
-    private List<TwitterStatus> statuses;
-    private long start;
-    private String ownerScreenName;
-    private String idGephi;
+    public void streamIsTerminatedOK() throws URISyntaxException, IOException {
+        DefaultHttpClient httpclient = new DefaultHttpClient();
+        URIBuilder builder = new URIBuilder();
+        builder.setScheme("http").setHost("localhost:8080/ServerDispatcher/webresources/CommunicationServers/TerminatedOK")
+                .setParameter("jobStart", LaunchStreamResource.jobStart)
+                .setParameter("idGephi", LaunchStreamResource.idGephi)
+                .setParameter("app", LaunchStreamResource.app);
+        URI uri = builder.build();
+        System.out.println("uri: " + uri);
+        HttpGet httpget = new HttpGet(uri);
 
-    public Job() {
-        statuses = new ArrayList();
-    }
+        HttpResponse response = httpclient.execute(httpget);
+        HttpEntity entity = response.getEntity();
+        if (entity == null) {
+            System.out.println("empty response to API call");
+        }
+        String responseString = EntityUtils.toString(entity);
+        System.out.println(responseString);
 
-    public List<TwitterStatus> getStatuses() {
-        return statuses;
-    }
-
-    public void setStatuses(List<TwitterStatus> statuses) {
-        this.statuses = statuses;
-    }
-
-    public long getStart() {
-        return start;
-    }
-
-    public void setStart(long start) {
-        this.start = start;
-    }
-
-    public String getOwnerScreenName() {
-        return ownerScreenName;
-    }
-
-    public void setOwnerScreenName(String ownerScreenName) {
-        this.ownerScreenName = ownerScreenName;
-    }
-
-    public String getIdGephi() {
-        return idGephi;
-    }
-
-    public void setIdGephi(String idGephi) {
-        this.idGephi = idGephi;
     }
 
 }
