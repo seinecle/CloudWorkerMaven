@@ -15,12 +15,6 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import com.google.code.morphia.Datastore;
 import java.io.Serializable;
-import javax.ejb.EJB;
-import javax.ejb.Startup;
-import javax.ejb.Stateless;
-import javax.faces.bean.ApplicationScoped;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ManagedProperty;
 
 /*
  Copyright 2008-2013 Clement Levallois

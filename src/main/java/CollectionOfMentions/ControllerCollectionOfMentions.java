@@ -147,8 +147,7 @@ public class ControllerCollectionOfMentions extends UntypedActor {
             //Send msg to central server about completion.
             SenderMsgToCentralServer sender = new SenderMsgToCentralServer();
             sender.streamIsTerminatedOK();
-            
-            
+
             //stop the current actor
             getContext().stop(getSelf());
 
@@ -193,14 +192,16 @@ public class ControllerCollectionOfMentions extends UntypedActor {
                     //updating progress a last time;
                     Long progressLong = (Long) ((System.currentTimeMillis() - startDateTime.getMillis()) * 100 / (stopTime - startDateTime.getMillis()));
                     System.out.println("progress before closing: " + progressLong);
+                    System.out.println("(progress is put back to 99% to allow for Excel file creation, after which it will be set to 100%");
 
                     Integer progress = progressLong.intValue();
-                    if (progress < 100) {
-                        opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress);
-                        dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
+                    if (progress > 99) {
+                        progress = 99;
                     }
-                    //**************************************
+                    opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress);
+                    dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
 
+                    //**************************************
                     //recording the time when the job ended
                     opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("end", System.currentTimeMillis());
                     dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
