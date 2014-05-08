@@ -4,9 +4,9 @@
  */
 package Model;
 
-import com.google.code.morphia.annotations.Id;
 import java.util.Date;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Id;
 
 /**
  *

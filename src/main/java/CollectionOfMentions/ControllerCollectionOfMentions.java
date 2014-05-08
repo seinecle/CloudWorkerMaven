@@ -17,17 +17,18 @@ import OAuth.MyOwnTwitterFactory;
 import Singletons.SharedMongoMorphiaInstance;
 import Utils.ConvertStatus;
 import akka.actor.UntypedActor;
-import com.google.code.morphia.Datastore;
-import com.google.code.morphia.query.Query;
-import com.google.code.morphia.query.UpdateOperations;
 import java.util.ArrayList;
 import java.util.List;
 import org.joda.time.DateTime;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 import twitter4j.FilterQuery;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.StatusListener;
+import twitter4j.Twitter;
 import twitter4j.TwitterStream;
 import twitter4j.auth.AccessToken;
 
@@ -73,18 +74,15 @@ import twitter4j.auth.AccessToken;
 public class ControllerCollectionOfMentions extends UntypedActor {
 
     private String mention;
+    private String app;
     private List<Status> statuses;
     private TwitterStream twitterStream;
+    private Twitter twitter;
     AccessToken accessToken;
     int numberOfMinutes;
     int numberOfHours;
     int numberOfDays;
-    private Integer fromHour;
-    private Integer fromDay;
-    private Integer fromMonth;
-    private Integer fromYear;
     private String now;
-    private Job job;
 
     Datastore dsJobs;
     Datastore dsJobsInfo;
@@ -96,13 +94,19 @@ public class ControllerCollectionOfMentions extends UntypedActor {
     Query<Job> updateQueryJob;
 
     int sizeBatch = 25;
-    Long timeLastStatus = 0L;
-    Long timeSinceLastStatus = 0L;
+    long timeLastStatus = 0L;
+    long timeSinceLastStatus = 0L;
     DateTime startDateTime;
-    Long stopTime;
+    long stopTime;
     boolean accept = true;
     private String idGephi;
-    private Long jobStart;
+    private long jobStart;
+    int progress;
+    Long progressLong;
+    List<TwitterStatus> twitterStatuses;
+    ConvertStatus convertStatus;
+
+    int nbTweets = 0;
 
     public ControllerCollectionOfMentions() {
     }
@@ -115,13 +119,9 @@ public class ControllerCollectionOfMentions extends UntypedActor {
 
             this.idGephi = msg.getIdGephi();
             this.jobStart = Long.decode(msg.getJobStart());
-
+            this.app = msg.getApp();
             this.mention = msg.getMention();
             this.now = msg.isNow();
-            this.fromHour = msg.getFromHour();
-            this.fromDay = msg.getFromDay();
-            this.fromMonth = msg.getFromMonth();
-            this.fromYear = msg.getFromYear();
             this.numberOfMinutes = msg.getForMinutes();
             this.numberOfHours = msg.getForHours();
             this.numberOfDays = msg.getForDays();
@@ -138,15 +138,23 @@ public class ControllerCollectionOfMentions extends UntypedActor {
             MyOwnTwitterFactory factory = new MyOwnTwitterFactory();
             twitterStream = factory.createOneTwitterStreamInstance(accessToken);
 
+            //testing causes of 401 error ("Unauthorized")
+//            twitter = factory.createOneTwitterInstance();
+//            try {
+//                twitter.updateStatus("test");
+//            } catch (TwitterException e) {
+//                System.out.println(e.getResponseHeader("date"));
+//                System.out.println("current date: " + new LocalDate() + " ---" + new LocalTime().toString());
+//            }
+
             updateQueryJobInfo = dsJobsInfo.createQuery(JobInfo.class).field("idGephi").equal(this.idGephi).field("start").equal(jobStart);
             updateQueryJob = dsJobs.createQuery(Job.class).field("idGephi").equal(this.idGephi).field("start").equal(jobStart);
 
             run();
-            System.out.println("run has returned!");
 
             //Send msg to central server about completion.
             SenderMsgToCentralServer sender = new SenderMsgToCentralServer();
-            sender.streamIsTerminatedOK();
+            sender.streamIsTerminatedOK(idGephi, String.valueOf(jobStart),app);
 
             //stop the current actor
             getContext().stop(getSelf());
@@ -154,6 +162,33 @@ public class ControllerCollectionOfMentions extends UntypedActor {
         }
 
         if (message instanceof MsgInterrupt) {
+            convertStatus = new ConvertStatus();
+            twitterStatuses = convertStatus.convertAllToTwitterStatus(statuses);
+            if (!twitterStatuses.isEmpty()) {
+                opsJob = dsJobs.createUpdateOperations(Job.class).addAll("statuses", twitterStatuses, true);
+                dsJobs.update(updateQueryJob, opsJob);
+            }
+            //updating progress a last time;
+            progressLong = (Long) ((System.currentTimeMillis() - startDateTime.getMillis()) * 100 / (stopTime - startDateTime.getMillis()));
+            System.out.println("progress before closing: " + progressLong);
+            System.out.println("(progress is put back to 99% to allow for Excel file creation, after which it will be set to 100%");
+
+            progress = progressLong.intValue();
+            if (progress > 99) {
+                progress = 99;
+            }
+            opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress);
+            dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
+
+            opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("nbTweets", nbTweets);
+            dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
+
+            //**************************************
+            //recording the time when the job ended
+            opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("end", System.currentTimeMillis());
+            dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
+            //**************************************
+
             getContext().stop(getSelf());
         }
     }
@@ -163,13 +198,29 @@ public class ControllerCollectionOfMentions extends UntypedActor {
 
     public void run() {
 
-        if (!now.equals("true")) {
-            startDateTime = new DateTime(fromYear, fromMonth, fromDay, fromHour, 0);
-        } else {
-            startDateTime = new DateTime();
+        startDateTime = new DateTime();
+
+        //checks on dates to make sure it's not abobe 7 days
+        if (numberOfMinutes < 0) {
+            numberOfMinutes = 0;
+        }
+        if (numberOfMinutes > 59) {
+            numberOfMinutes = 59;
+        }
+        if (numberOfHours > 24) {
+            numberOfHours = 24;
+        }
+        if (numberOfHours < 24) {
+            numberOfHours = 0;
+        }
+        if (numberOfDays > 7) {
+            numberOfDays = 7;
         }
 
         stopTime = startDateTime.getMillis() + numberOfMinutes * 60000 + numberOfHours * 3600000 + numberOfDays * 3600000 * 24;
+        if (stopTime - startDateTime.getMillis() > 3600 * 24 * 7) {
+            stopTime = startDateTime.getMillis() + 3600 * 24 * 7;
+        }
 
         statuses = new ArrayList();
 
@@ -179,26 +230,32 @@ public class ControllerCollectionOfMentions extends UntypedActor {
         listener = new StatusListener() {
             @Override
             public void onStatus(Status status) {
-                if (System.currentTimeMillis() > stopTime || new DateTime().isBefore(startDateTime)) {
+                nbTweets++;
+
+                if (System.currentTimeMillis() > stopTime) {
 
                     //updating the job a last time;
                     //**************************************
                     //saving statuses to the db.
-                    List<TwitterStatus> twitterStatuses = new ConvertStatus().convertAllToTwitterStatus(statuses);
+                    convertStatus = new ConvertStatus();
+                    twitterStatuses = convertStatus.convertAllToTwitterStatus(statuses);
                     if (!twitterStatuses.isEmpty()) {
                         opsJob = dsJobs.createUpdateOperations(Job.class).addAll("statuses", twitterStatuses, true);
                         dsJobs.update(updateQueryJob, opsJob);
                     }
                     //updating progress a last time;
-                    Long progressLong = (Long) ((System.currentTimeMillis() - startDateTime.getMillis()) * 100 / (stopTime - startDateTime.getMillis()));
+                    progressLong = (Long) ((System.currentTimeMillis() - startDateTime.getMillis()) * 100 / (stopTime - startDateTime.getMillis()));
                     System.out.println("progress before closing: " + progressLong);
                     System.out.println("(progress is put back to 99% to allow for Excel file creation, after which it will be set to 100%");
 
-                    Integer progress = progressLong.intValue();
+                    progress = progressLong.intValue();
                     if (progress > 99) {
                         progress = 99;
                     }
                     opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress);
+                    dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
+
+                    opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("nbTweets", nbTweets);
                     dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
 
                     //**************************************
@@ -210,11 +267,10 @@ public class ControllerCollectionOfMentions extends UntypedActor {
                     synchronized (lock) {
                         lock.notify();
                     }
-                    System.out.println("unlocked");
 
                 } else {
 
-                    System.out.println("@" + status.getUser().getScreenName() + " - " + status.getText());
+//                    System.out.println("@" + status.getUser().getScreenName() + " - " + status.getText());
                     statuses.add(status);
                     timeSinceLastStatus = System.currentTimeMillis() - timeLastStatus;
 
@@ -226,23 +282,28 @@ public class ControllerCollectionOfMentions extends UntypedActor {
                         sizeBatch = 25;
                     }
                     timeLastStatus = System.currentTimeMillis();
+                    progressLong = (Long) ((System.currentTimeMillis() - startDateTime.getMillis()) * 100 / (stopTime - startDateTime.getMillis()));
 
-                    if (statuses.size() > sizeBatch) {
+                    if (statuses.size() > sizeBatch || progressLong.intValue() > progress) {
 
                         //**************************************
                         //saving statuses to the db.
-                        List<TwitterStatus> twitterStatuses = new ConvertStatus().convertAllToTwitterStatus(statuses);
+                        convertStatus = new ConvertStatus();
+                        twitterStatuses = convertStatus.convertAllToTwitterStatus(statuses);
                         opsJob = dsJobs.createUpdateOperations(Job.class).addAll("statuses", twitterStatuses, true);
                         dsJobs.update(updateQueryJob, opsJob);
 
                         statuses = new ArrayList();
 
                         //updating progress.
-                        Long progressLong = (Long) ((System.currentTimeMillis() - startDateTime.getMillis()) * 100 / (stopTime - startDateTime.getMillis()));
                         System.out.println("progress: " + progressLong);
-                        Integer progress = progressLong.intValue();
+                        progress = progressLong.intValue();
                         opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress);
                         dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
+
+                        opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("nbTweets", nbTweets);
+                        dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
+
                         //**************************************
                     }
                 }
@@ -277,7 +338,7 @@ public class ControllerCollectionOfMentions extends UntypedActor {
         twitterStream.addListener(listener);
 
         FilterQuery fq = new FilterQuery();
-        String[] mentions = {mention};
+        String[] mentions = mention.split(",");
         fq.track(mentions);
 
 //        twitterStream.filter(new FilterQuery(0, users, keywords));

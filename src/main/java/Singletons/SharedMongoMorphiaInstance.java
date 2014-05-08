@@ -9,8 +9,6 @@ import Model.AccessTokenPlus;
 import Model.Job;
 import Model.JobInfo;
 import Model.Session;
-import com.google.code.morphia.Datastore;
-import com.google.code.morphia.Morphia;
 import com.mongodb.MongoClient;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
@@ -18,8 +16,8 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.faces.bean.ApplicationScoped;
-import javax.faces.bean.ManagedBean;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.Morphia;
 
 /*
  Copyright 2008-2013 Clement Levallois
@@ -60,29 +58,28 @@ import javax.faces.bean.ManagedBean;
  Contributor(s): Clement Levallois
 
  */
+//@Singleton
+//@Startup
+// initialize at deployment time instead of first invocation
 public class SharedMongoMorphiaInstance {
 
     static MongoClient mongoClient;
     static Morphia morphia;
-    static Datastore dsOAuth;
     static Datastore dsAccessToken;
     static Datastore dsAccessTokenBusy;
     static Datastore dsJobs;
     static Datastore dsJobsInfos;
     static Datastore dsSessions;
-    static Datastore dsUser;
 
+//    @PostConstruct
     public static void loadConfiguration() {
         try {
             mongoClient = new MongoClient("199.59.247.173", 27017);
             morphia = new Morphia();
-            dsOAuth = morphia.createDatastore(mongoClient, "oAuth");
             dsAccessToken = morphia.createDatastore(mongoClient, "AccessToken");
-            dsAccessTokenBusy = morphia.createDatastore(mongoClient, "AccessTokenBusy");
             dsJobs = morphia.createDatastore(mongoClient, "Job");
             dsJobsInfos = morphia.createDatastore(mongoClient, "JobInfo");
             dsSessions = morphia.createDatastore(mongoClient, "Session");
-            dsUser = morphia.createDatastore(mongoClient, "User");
 
             morphia.map(AccessTokenPlus.class);
             morphia.map(Job.class);
@@ -93,14 +90,6 @@ public class SharedMongoMorphiaInstance {
             Logger.getLogger(SharedMongoMorphiaInstance.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-    }
-
-//    @Lock(LockType.READ) // To allow multiple threads to invoke this method
-//    // simultaneusly
-//    public String getValue(String key) {
-//    }
-    public static Datastore getDsOAuth() {
-        return dsOAuth;
     }
 
     public static Datastore getDsAccessToken() {
@@ -119,10 +108,6 @@ public class SharedMongoMorphiaInstance {
         return dsSessions;
     }
 
-    public static Datastore getDsUser() {
-        return dsUser;
-    }
-
     public static Datastore getDsJobsInfos() {
         return dsJobsInfos;
     }
@@ -130,6 +115,5 @@ public class SharedMongoMorphiaInstance {
     public static MongoClient getMongoClient() {
         return mongoClient;
     }
-    
-    
+
 }

@@ -5,7 +5,6 @@
  */
 package Control;
 
-import REST.LaunchStreamResource;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -58,13 +57,13 @@ import org.apache.http.util.EntityUtils;
  */
 public class SenderMsgToCentralServer {
 
-    public void streamIsTerminatedOK() throws URISyntaxException, IOException {
+    public void streamIsTerminatedOK(String idGephi, String jobStart, String app) throws URISyntaxException, IOException {
         DefaultHttpClient httpclient = new DefaultHttpClient();
         URIBuilder builder = new URIBuilder();
-        builder.setScheme("http").setHost("localhost:8080/ServerDispatcher/webresources/CommunicationServers/TerminatedOK")
-                .setParameter("jobStart", LaunchStreamResource.jobStart)
-                .setParameter("idGephi", LaunchStreamResource.idGephi)
-                .setParameter("app", LaunchStreamResource.app);
+        builder.setScheme("http").setHost(Admin.ipServerDispatch()+"webresources/CommunicationServers/TerminatedOK")
+                .setParameter("jobStart", jobStart)
+                .setParameter("idGephi", idGephi)
+                .setParameter("app", app);
         URI uri = builder.build();
         System.out.println("uri: " + uri);
         HttpGet httpget = new HttpGet(uri);

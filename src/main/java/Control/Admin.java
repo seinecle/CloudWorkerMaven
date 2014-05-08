@@ -3,12 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package APICalls;
-
-import Model.Job;
-import Model.TwitterJob;
-import Persistence.MongoMorphia;
-import java.util.Set;
+package Control;
 
 /*
  Copyright 2008-2013 Clement Levallois
@@ -49,30 +44,12 @@ import java.util.Set;
  Contributor(s): Clement Levallois
 
  */
-public class MsgLaunchGetFollowersAndTheirRelations {
+public class Admin {
 
-    private Set<Integer> setIdsInitialSeed;
-    private MongoMorphia mm;
-    private Job WFWjob;
+    static boolean isServerDispatchLocal = false;
 
-    public MsgLaunchGetFollowersAndTheirRelations(Set<Integer> setIdsInitialSeed, MongoMorphia mm, Job WFWjob) {
-        this.setIdsInitialSeed = setIdsInitialSeed;
-        this.mm = mm;
-        this.WFWjob = WFWjob;
-
+    public static String ipServerDispatch() {
+        return isServerDispatchLocal ? "localhost:8080/ServerDispatcher/" : "199.59.247.173:8080/ServerDispatcher-1.0-SNAPSHOT/";
     }
-
-    public Set<Integer> getSetIdsInitialSeed() {
-        return setIdsInitialSeed;
-    }
-
-    public MongoMorphia getMm() {
-        return mm;
-    }
-
-    public Job getWFWjob() {
-        return WFWjob;
-    }
-    
 
 }

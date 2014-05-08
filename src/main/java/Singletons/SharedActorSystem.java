@@ -1,16 +1,11 @@
+package Singletons;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Singletons;
-
 import akka.actor.ActorSystem;
-import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import javax.faces.bean.ApplicationScoped;
-import javax.faces.bean.ManagedBean;
 
 /*
  Copyright 2008-2013 Clement Levallois
@@ -51,15 +46,20 @@ import javax.faces.bean.ManagedBean;
  Contributor(s): Clement Levallois
 
  */
+//@Singleton
+//@Startup
+// initialize at deployment time instead of first invocation
+
 public class SharedActorSystem {
 
     static ActorSystem system;
 
+//    @PostConstruct
     public static void loadConfiguration() {
         system = ActorSystem.create("systemJobs");
     }
-
-    public static ActorSystem getSystem() {
+    
+        public static ActorSystem getSystem() {
         return system;
     }
 }

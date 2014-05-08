@@ -13,8 +13,9 @@ import Singletons.SharedMongoMorphiaInstance;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import com.google.code.morphia.Datastore;
-import java.io.Serializable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.mongodb.morphia.Datastore;
 
 /*
  Copyright 2008-2013 Clement Levallois
@@ -55,16 +56,34 @@ import java.io.Serializable;
  Contributor(s): Clement Levallois
 
  */
-public class Controller implements Serializable {
+public class Controller implements Runnable {
 
     boolean debug = false;
     boolean local = false;
     private ActorSystem system;
+    Integer forMinutes;
+    Integer forHours;
+    Integer forDays;
+    String mention;
+    String idGephi;
+    String jobStartString;
+    String nowString;
+    String terminate;
+    String app;
 
-    public Controller() {
+    public Controller(String app, String mention, String idGephi, String jobStartString, String terminate, String fromHourString, String fromDayString, String fromMonthString, String fromYearString, String forMinutesString, String forHoursString, String forDaysString, String nowString) {
+        forMinutes = Integer.valueOf(forMinutesString);
+        forHours = Integer.valueOf(forHoursString);
+        forDays = Integer.valueOf(forDaysString);
+        this.mention = mention;
+        this.idGephi = idGephi;
+        this.jobStartString = jobStartString;
+        this.nowString = nowString;
+        this.terminate = terminate;
+        this.app = app;
     }
 
-    public void execute(String mention, String idGephi, String jobStartString, String terminate, String fromHourString, String fromDayString, String fromMonthString, String fromYearString, String forMinutesString, String forHoursString, String forDaysString, String nowString) {
+    public void run() {
 
         Integer fromHour = null;
         Integer fromDay = null;
@@ -79,29 +98,31 @@ public class Controller implements Serializable {
 
         if (mention != null && !mention.isEmpty()) {
 
-            Integer forMinutes = Integer.valueOf(forMinutesString);
-            Integer forHours = Integer.valueOf(forHoursString);
-            Integer forDays = Integer.valueOf(forDaysString);
-            if (!nowString.equals("true")) {
-                fromHour = Integer.valueOf(fromHourString);
-                fromDay = Integer.valueOf(fromDayString);
-                fromMonth = Integer.valueOf(fromMonthString);
-                fromYear = Integer.valueOf(fromYearString);
+            try {
+
+                Datastore dsSessions = SharedMongoMorphiaInstance.getDsSessions();
+                Session session = dsSessions.find(Session.class).field("idGephi").equal(idGephi).get();
+
+                if (session == null) {
+                    return;
+                }
+                system = SharedActorSystem.getSystem();
+
+                final ActorRef actorCollectionMentions = system.actorOf(Props.create(ControllerCollectionOfMentions.class), "controller" + String.valueOf(jobStartString));
+
+                MsgLaunchCollectionMentionsTwitter msg = new MsgLaunchCollectionMentionsTwitter(app, idGephi, jobStartString, nowString, fromHour, fromDay, fromMonth, fromYear, mention, forMinutes, forHours, forDays);
+                actorCollectionMentions.tell(msg, ActorRef.noSender());
+
+                Long stopTime = System.currentTimeMillis() + forMinutes * 60000 + forHours * 3600000 + forDays * 3600000 * 24 + 3000;
+
+                //wait for the duration of the job to elapse
+                Thread.sleep(stopTime - System.currentTimeMillis());
+                MsgInterrupt msgInterrupt = new MsgInterrupt();
+                actorCollectionMentions.tell(msgInterrupt, ActorRef.noSender());
+
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
             }
-
-            Datastore dsSessions = SharedMongoMorphiaInstance.getDsSessions();
-            Session session = dsSessions.find(Session.class).field("idGephi").equal(idGephi).get();
-
-            if (session == null) {
-                return;
-            }
-            system = SharedActorSystem.getSystem();
-
-            final ActorRef actorCollectionMentions = system.actorOf(Props.create(ControllerCollectionOfMentions.class), "controller" + String.valueOf(jobStartString));
-
-            MsgLaunchCollectionMentionsTwitter msg = new MsgLaunchCollectionMentionsTwitter(idGephi, jobStartString, nowString, fromHour, fromDay, fromMonth, fromYear, mention, forMinutes, forHours, forDays);
-            actorCollectionMentions.tell(msg, ActorRef.noSender());
-
         } else {
             if (terminate.equals("yes")) {
                 system = SharedActorSystem.getSystem();

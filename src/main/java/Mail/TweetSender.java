@@ -8,9 +8,9 @@ package Mail;
 import Model.AccessTokenPlus;
 import Model.Job;
 import OAuth.MyOwnTwitterFactory;
-import com.google.code.morphia.Datastore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.mongodb.morphia.Datastore;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 

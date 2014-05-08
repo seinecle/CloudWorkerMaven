@@ -5,7 +5,6 @@
  */
 package APICalls;
 
-import Persistence.MongoMorphia;
 
 /*
  Copyright 2008-2013 Clement Levallois
@@ -48,6 +47,7 @@ import Persistence.MongoMorphia;
  */
 public class MsgLaunchCollectionMentionsTwitter {
 
+    String app;
     String idGephi;
     String jobStart;
     String now;
@@ -60,7 +60,8 @@ public class MsgLaunchCollectionMentionsTwitter {
     Integer forHours;
     Integer forDays;
 
-    public MsgLaunchCollectionMentionsTwitter(String idGephi, String jobStart,String now, Integer fromHour, Integer fromDay, Integer fromMonth, Integer fromYear, String mention, Integer forMinutes, Integer forHours, Integer forDays) {
+    public MsgLaunchCollectionMentionsTwitter(String app, String idGephi, String jobStart,String now, Integer fromHour, Integer fromDay, Integer fromMonth, Integer fromYear, String mention, Integer forMinutes, Integer forHours, Integer forDays) {
+        this.app = app;
         this.idGephi = idGephi;
         this.jobStart = jobStart;
         this.now = now;
@@ -118,5 +119,11 @@ public class MsgLaunchCollectionMentionsTwitter {
     public String getMention() {
         return mention;
     }
+
+    public String getApp() {
+        return app;
+    }
+    
+    
 
 }

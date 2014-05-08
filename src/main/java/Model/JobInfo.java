@@ -4,9 +4,9 @@
  */
 package Model;
 
-import com.google.code.morphia.annotations.Id;
 import java.util.UUID;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Id;
 
 /*
  Copyright 2008-2013 Clement Levallois
@@ -59,13 +59,8 @@ public class JobInfo {
     private String idGephi;
     private UUID jobId;
     private Integer progress;
-    private boolean twitterWFW;
     private boolean twitterStream;
-    private boolean twitterUserSearch;
-    private boolean flickrPics;
-    private boolean flickrTagsNetwork;
-    private boolean europeana;
-    private boolean nationaalArchief;
+    private int nbTweets;
 
     public JobInfo() {
     }
@@ -126,60 +121,12 @@ public class JobInfo {
         this.progress = progress;
     }
 
-    public boolean isTwitterWFW() {
-        return twitterWFW;
-    }
-
-    public void setTwitterWFW(boolean twitterWFW) {
-        this.twitterWFW = twitterWFW;
-    }
-
     public boolean isTwitterStream() {
         return twitterStream;
     }
 
     public void setTwitterStream(boolean twitterStream) {
         this.twitterStream = twitterStream;
-    }
-
-    public boolean isFlickrPics() {
-        return flickrPics;
-    }
-
-    public void setFlickrPics(boolean flickrPics) {
-        this.flickrPics = flickrPics;
-    }
-
-    public boolean isFlickrTagsNetwork() {
-        return flickrTagsNetwork;
-    }
-
-    public void setFlickrTagsNetwork(boolean flickrTagsNetwork) {
-        this.flickrTagsNetwork = flickrTagsNetwork;
-    }
-
-    public boolean isEuropeana() {
-        return europeana;
-    }
-
-    public void setEuropeana(boolean europeana) {
-        this.europeana = europeana;
-    }
-
-    public boolean isNationaalArchief() {
-        return nationaalArchief;
-    }
-
-    public void setNationaalArchief(boolean nationaalArchief) {
-        this.nationaalArchief = nationaalArchief;
-    }
-
-    public boolean isTwitterUserSearch() {
-        return twitterUserSearch;
-    }
-
-    public void setTwitterUserSearch(boolean twitterUserSearch) {
-        this.twitterUserSearch = twitterUserSearch;
     }
 
     public String getStatus() {
@@ -190,4 +137,19 @@ public class JobInfo {
         this.status = status;
     }
 
+    public ObjectId getId() {
+        return id;
+    }
+
+    public void setId(ObjectId id) {
+        this.id = id;
+    }
+
+    public int getNbTweets() {
+        return nbTweets;
+    }
+
+    public void setNbTweets(int nbTweets) {
+        this.nbTweets = nbTweets;
+    }
 }

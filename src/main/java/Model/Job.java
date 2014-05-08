@@ -5,11 +5,10 @@
  */
 package Model;
 
-import com.google.code.morphia.annotations.Embedded;
-import com.google.code.morphia.annotations.Id;
 import java.util.ArrayList;
 import java.util.List;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Id;
 
 /*
  Copyright 2008-2013 Clement Levallois

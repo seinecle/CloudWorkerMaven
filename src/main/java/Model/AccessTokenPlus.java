@@ -4,8 +4,9 @@
  */
 package Model;
 
-import com.google.code.morphia.annotations.Id;
+
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Id;
 import twitter4j.auth.AccessToken;
 
 /*

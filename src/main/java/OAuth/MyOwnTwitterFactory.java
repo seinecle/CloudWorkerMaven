@@ -60,6 +60,8 @@ public class MyOwnTwitterFactory {
         ConfigurationBuilder builder = new ConfigurationBuilder();
         builder.setOAuthConsumerKey(APIkeys.getTwitterAPIKey());
         builder.setOAuthConsumerSecret(APIkeys.getTwitterAPISecret());
+        builder.setOAuthAccessToken("31805620-QQy8TFFDKRxWyOUVnY08UcxT5bzrFhRWUa0A3lEW3");
+        builder.setOAuthAccessTokenSecret("iJuCkdgrfIpGn5odyF2evMSvAsovreeEV6cZU5ihVVI7j");
         Configuration configuration = builder.build();
         TwitterFactory factory = new TwitterFactory(configuration);
         twitter = factory.getInstance();
@@ -73,8 +75,12 @@ public class MyOwnTwitterFactory {
         ConfigurationBuilder builder = new ConfigurationBuilder();
         builder.setOAuthConsumerKey(APIkeys.getTwitterAPIKey());
         builder.setOAuthConsumerSecret(APIkeys.getTwitterAPISecret());
+        System.out.println("AT: "+accessToken.getToken());
+        System.out.println("ATS: "+accessToken.getTokenSecret());
         builder.setOAuthAccessToken(accessToken.getToken());
         builder.setOAuthAccessTokenSecret(accessToken.getTokenSecret());
+//        builder.setOAuthAccessToken("31805620-QQy8TFFDKRxWyOUVnY08UcxT5bzrFhRWUa0A3lEW3");
+//        builder.setOAuthAccessTokenSecret("iJuCkdgrfIpGn5odyF2evMSvAsovreeEV6cZU5ihVVI7j");
         Configuration configuration = builder.build();
         TwitterStreamFactory factory = new TwitterStreamFactory(configuration);
         twitterStream = factory.getInstance();
