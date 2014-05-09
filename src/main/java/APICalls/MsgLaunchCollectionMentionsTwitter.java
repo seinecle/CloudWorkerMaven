@@ -47,6 +47,7 @@ package APICalls;
  */
 public class MsgLaunchCollectionMentionsTwitter {
 
+    String jobId;
     String app;
     String idGephi;
     String jobStart;
@@ -60,7 +61,8 @@ public class MsgLaunchCollectionMentionsTwitter {
     Integer forHours;
     Integer forDays;
 
-    public MsgLaunchCollectionMentionsTwitter(String app, String idGephi, String jobStart,String now, Integer fromHour, Integer fromDay, Integer fromMonth, Integer fromYear, String mention, Integer forMinutes, Integer forHours, Integer forDays) {
+    public MsgLaunchCollectionMentionsTwitter(String jobId, String app, String idGephi, String jobStart, String now, Integer fromHour, Integer fromDay, Integer fromMonth, Integer fromYear, String mention, Integer forMinutes, Integer forHours, Integer forDays) {
+        this.jobId = jobId;
         this.app = app;
         this.idGephi = idGephi;
         this.jobStart = jobStart;
@@ -82,7 +84,6 @@ public class MsgLaunchCollectionMentionsTwitter {
     public String getJobStart() {
         return jobStart;
     }
-
 
     public String isNow() {
         return now;
@@ -123,7 +124,9 @@ public class MsgLaunchCollectionMentionsTwitter {
     public String getApp() {
         return app;
     }
-    
-    
+
+    public String getJobId() {
+        return jobId;
+    }
 
 }

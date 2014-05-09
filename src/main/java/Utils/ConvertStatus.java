@@ -56,22 +56,30 @@ import twitter4j.Status;
  */
 public class ConvertStatus {
 
+    List<TwitterStatus> twitterStatuses;
+    TwitterStatus twitterStatus;
+    List<Status> statusesOrig;
+    Place place;
+    TwitterStatus.Place tPlace;
+    TwitterStatus.Hashtag tHashTag;
+
     public List<TwitterStatus> convertAllToTwitterStatus(List<Status> statuses) {
 
-        List<TwitterStatus> twitterStatuses = new ArrayList();
+        twitterStatuses = new ArrayList();
 
         for (Status status : statuses) {
-            TwitterStatus twitterStatus = new TwitterStatus();
+            twitterStatus = new TwitterStatus();
 
             twitterStatus.setContributors(Arrays.asList(ArrayUtils.toObject(status.getContributors())));
             twitterStatus.setCreatedAt(status.getCreatedAt());
             twitterStatus.setCurrentUserRetweetId(status.getCurrentUserRetweetId());
 
             for (HashtagEntity hte : status.getHashtagEntities()) {
-                twitterStatus.getHashtagEntities().add(new TwitterStatus.Hashtag(hte.getStart(), hte.getEnd(), hte.getText()));
+                tHashTag = new TwitterStatus.Hashtag(hte.getStart(), hte.getEnd(), hte.getText());
+                twitterStatus.getHashtagEntities().add(tHashTag);
             }
 
-            twitterStatus.setId(status.getId());
+            twitterStatus.setIdTweet(status.getId());
             twitterStatus.setInReplyToScreenName(status.getInReplyToScreenName());
             twitterStatus.setInReplyToStatusId(status.getInReplyToStatusId());
             twitterStatus.setInReplyToUserId(status.getInReplyToUserId());
@@ -85,9 +93,10 @@ public class ConvertStatus {
                 twitterStatus.getMediaEntities().add(new TwitterStatus.MediaEntities(me.getId(), me.getURL(), me.getMediaURL(), me.getDisplayURL(), me.getType(), me.getStart(), me.getEnd()));
             }
 
-            Place place = status.getPlace();
+            place = status.getPlace();
             if (place != null) {
-                twitterStatus.setPlace(new TwitterStatus.Place(place.getURL(), place.getURL(), place.getCountry(), place.getCountryCode(), place.getFullName(), place.getStreetAddress(), place.getName(), place.getPlaceType()));
+                tPlace = new TwitterStatus.Place(place.getURL(), place.getURL(), place.getCountry(), place.getCountryCode(), place.getFullName(), place.getStreetAddress(), place.getName(), place.getPlaceType());
+                twitterStatus.setPlace(tPlace);
             }
 
             twitterStatus.setSource(status.getSource());
@@ -102,9 +111,9 @@ public class ConvertStatus {
 
     public TwitterStatus convertOneToTwitterStatus(Status status) {
 
-        List<Status> statusesOrig = new ArrayList();
+        statusesOrig = new ArrayList();
         statusesOrig.add(status);
-        List<TwitterStatus> twitterStatuses = convertAllToTwitterStatus(statusesOrig);
+        twitterStatuses = convertAllToTwitterStatus(statusesOrig);
         return twitterStatuses.get(0);
 
     }

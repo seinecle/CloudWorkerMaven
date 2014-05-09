@@ -9,6 +9,7 @@ import Model.AccessTokenPlus;
 import Model.Job;
 import Model.JobInfo;
 import Model.Session;
+import Model.TwitterStatus;
 import com.mongodb.MongoClient;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
@@ -66,10 +67,10 @@ public class SharedMongoMorphiaInstance {
     static MongoClient mongoClient;
     static Morphia morphia;
     static Datastore dsAccessToken;
-    static Datastore dsAccessTokenBusy;
     static Datastore dsJobs;
     static Datastore dsJobsInfos;
     static Datastore dsSessions;
+    static Datastore dsTweets;
 
 //    @PostConstruct
     public static void loadConfiguration() {
@@ -80,11 +81,13 @@ public class SharedMongoMorphiaInstance {
             dsJobs = morphia.createDatastore(mongoClient, "Job");
             dsJobsInfos = morphia.createDatastore(mongoClient, "JobInfo");
             dsSessions = morphia.createDatastore(mongoClient, "Session");
+            dsTweets = morphia.createDatastore(mongoClient, "TwitterStatus");
 
             morphia.map(AccessTokenPlus.class);
             morphia.map(Job.class);
             morphia.map(JobInfo.class);
             morphia.map(Session.class);
+            morphia.map(TwitterStatus.class);
 
         } catch (UnknownHostException ex) {
             Logger.getLogger(SharedMongoMorphiaInstance.class.getName()).log(Level.SEVERE, null, ex);
@@ -94,10 +97,6 @@ public class SharedMongoMorphiaInstance {
 
     public static Datastore getDsAccessToken() {
         return dsAccessToken;
-    }
-
-    public static Datastore getDsAccessTokenBusy() {
-        return dsAccessTokenBusy;
     }
 
     public static Datastore getDsJobs() {
@@ -116,4 +115,8 @@ public class SharedMongoMorphiaInstance {
         return mongoClient;
     }
 
+    public static Datastore getDsTweets() {
+        return dsTweets;
+    }
+ 
 }

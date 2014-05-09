@@ -70,8 +70,9 @@ public class Controller implements Runnable {
     String nowString;
     String terminate;
     String app;
+    String jobId;
 
-    public Controller(String app, String mention, String idGephi, String jobStartString, String terminate, String fromHourString, String fromDayString, String fromMonthString, String fromYearString, String forMinutesString, String forHoursString, String forDaysString, String nowString) {
+    public Controller(String jobId, String app, String mention, String idGephi, String jobStartString, String terminate, String fromHourString, String fromDayString, String fromMonthString, String fromYearString, String forMinutesString, String forHoursString, String forDaysString, String nowString) {
         forMinutes = Integer.valueOf(forMinutesString);
         forHours = Integer.valueOf(forHoursString);
         forDays = Integer.valueOf(forDaysString);
@@ -81,6 +82,7 @@ public class Controller implements Runnable {
         this.nowString = nowString;
         this.terminate = terminate;
         this.app = app;
+        this.jobId = jobId;
     }
 
     public void run() {
@@ -110,13 +112,14 @@ public class Controller implements Runnable {
 
                 final ActorRef actorCollectionMentions = system.actorOf(Props.create(ControllerCollectionOfMentions.class), "controller" + String.valueOf(jobStartString));
 
-                MsgLaunchCollectionMentionsTwitter msg = new MsgLaunchCollectionMentionsTwitter(app, idGephi, jobStartString, nowString, fromHour, fromDay, fromMonth, fromYear, mention, forMinutes, forHours, forDays);
+                MsgLaunchCollectionMentionsTwitter msg = new MsgLaunchCollectionMentionsTwitter(jobId, app, idGephi, jobStartString, nowString, fromHour, fromDay, fromMonth, fromYear, mention, forMinutes, forHours, forDays);
                 actorCollectionMentions.tell(msg, ActorRef.noSender());
 
                 Long stopTime = System.currentTimeMillis() + forMinutes * 60000 + forHours * 3600000 + forDays * 3600000 * 24 + 3000;
 
                 //wait for the duration of the job to elapse
                 Thread.sleep(stopTime - System.currentTimeMillis());
+                System.out.println("time of the collection has finished");                
                 MsgInterrupt msgInterrupt = new MsgInterrupt();
                 actorCollectionMentions.tell(msgInterrupt, ActorRef.noSender());
 

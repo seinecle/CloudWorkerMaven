@@ -8,6 +8,10 @@ package Model;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Id;
 
 /*
  Copyright 2008-2013 Clement Levallois
@@ -50,13 +54,17 @@ import java.util.List;
  */
 public class TwitterStatus {
 
+    @Id
+    private ObjectId id;
+
     List<Long> contributors;
     Date createdAt;
     long currentUserRetweetId;
     double latitude;
     double longitude;
     List<Hashtag> hashtagEntities;
-    long id;
+    long idTweet;
+    UUID jobId;
     String inReplyToScreenName;
     long inReplyToUserId;
     long inReplyToStatusId;
@@ -74,6 +82,16 @@ public class TwitterStatus {
         this.hashtagEntities = new ArrayList();
         this.mediaEntities = new ArrayList();
     }
+
+    public UUID getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(UUID jobId) {
+        this.jobId = jobId;
+    }
+    
+    
 
     public Date getCreatedAt() {
         return createdAt;
@@ -107,12 +125,12 @@ public class TwitterStatus {
         this.longitude = longitude;
     }
 
-    public long getId() {
-        return id;
+    public long getIdTweet() {
+        return idTweet;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setIdTweet(long idTweet) {
+        this.idTweet = idTweet;
     }
 
     public String getInReplyToScreenName() {

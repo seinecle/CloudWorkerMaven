@@ -8,6 +8,7 @@ package Model;
 import java.util.ArrayList;
 import java.util.List;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Id;
 
 /*
@@ -53,7 +54,7 @@ public class Job {
 
     @Id
     private ObjectId id;
-    private List<TwitterStatus> statuses;
+    private List<Long> statuses;
     private long start;
     private String ownerScreenName;
     private String idGephi;
@@ -62,11 +63,11 @@ public class Job {
         statuses = new ArrayList();
     }
 
-    public List<TwitterStatus> getStatuses() {
+    public List<Long> getStatuses() {
         return statuses;
     }
 
-    public void setStatuses(List<TwitterStatus> statuses) {
+    public void setStatuses(List<Long> statuses) {
         this.statuses = statuses;
     }
 
