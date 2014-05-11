@@ -130,6 +130,8 @@ public class ControllerCollectionOfMentions extends UntypedActor {
             this.now = msg.isNow();
             this.numberOfMinutes = msg.getForMinutes();
             this.numberOfHours = msg.getForHours();
+            System.out.println("hours controllercollectionmenttions: " + this.numberOfHours);
+
             this.numberOfDays = msg.getForDays();
 
             this.dsJobs = SharedMongoMorphiaInstance.getDsJobs();
@@ -218,16 +220,19 @@ public class ControllerCollectionOfMentions extends UntypedActor {
         if (numberOfHours > 24) {
             numberOfHours = 24;
         }
-        if (numberOfHours < 24) {
+        if (numberOfHours < 0) {
             numberOfHours = 0;
         }
         if (numberOfDays > 7) {
             numberOfDays = 7;
         }
+        if (numberOfDays < 0) {
+            numberOfDays = 0;
+        }
 
         stopTime = startDateTime.getMillis() + numberOfMinutes * 60000 + numberOfHours * 3600000 + numberOfDays * 3600000 * 24;
-        if (stopTime - startDateTime.getMillis() > 3600 * 24 * 7) {
-            stopTime = startDateTime.getMillis() + 3600 * 24 * 7;
+        if (stopTime - startDateTime.getMillis() > 3600000 * 24 * 7) {
+            stopTime = startDateTime.getMillis() + 3600000 * 24 * 7;
         }
 
         statusesIds = new ArrayList();
@@ -261,17 +266,11 @@ public class ControllerCollectionOfMentions extends UntypedActor {
                     if (progress > 99) {
                         progress = 99;
                     }
-                    opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress);
+
+                    //recording the progress, nbTweets and end time of the job
+                    opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress).set("nbTweets", nbTweets).set("end", System.currentTimeMillis());
                     dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
 
-                    opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("nbTweets", nbTweets);
-                    dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
-
-                    //**************************************
-                    //recording the time when the job ended
-                    opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("end", System.currentTimeMillis());
-                    dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
-                    //**************************************
 
                     synchronized (lock) {
                         lock.notify();

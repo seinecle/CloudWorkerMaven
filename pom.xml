@@ -45,12 +45,12 @@
             <version>0.107</version>
             <type>jar</type>
         </dependency>
-        <dependency>
+        <!--        <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-web-api</artifactId>
             <version>6.0</version>
             <scope>provided</scope>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>com.cloudbees</groupId>
             <artifactId>cloudbees-api-client</artifactId>
@@ -83,7 +83,7 @@
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_2.10</artifactId>
+            <artifactId>akka-actor_2.11</artifactId>
             <version>2.3.2</version>
         </dependency>
         <dependency>
@@ -91,7 +91,17 @@
             <artifactId>jersey-bundle</artifactId>
             <version>1.18.1</version>
         </dependency>
-            
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-servlet</artifactId>
+            <version>1.18.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-jaxrs</artifactId>
+            <version>1.9.13</version>
+        </dependency>
+                        
     </dependencies>
 
     <build>

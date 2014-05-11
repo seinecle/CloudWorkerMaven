@@ -15,8 +15,8 @@ import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
+//import javax.ejb.Singleton;
+//import javax.ejb.Startup;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 

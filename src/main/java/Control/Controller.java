@@ -110,7 +110,8 @@ public class Controller implements Runnable {
                 }
                 system = SharedActorSystem.getSystem();
 
-                final ActorRef actorCollectionMentions = system.actorOf(Props.create(ControllerCollectionOfMentions.class), "controller" + String.valueOf(jobStartString));
+                final ActorRef actorCollectionMentions = system.actorOf(Props.create(ControllerCollectionOfMentions.class), "controller" + jobId);
+                System.out.println("hours: " + forHours);
 
                 MsgLaunchCollectionMentionsTwitter msg = new MsgLaunchCollectionMentionsTwitter(jobId, app, idGephi, jobStartString, nowString, fromHour, fromDay, fromMonth, fromYear, mention, forMinutes, forHours, forDays);
                 actorCollectionMentions.tell(msg, ActorRef.noSender());
@@ -119,7 +120,7 @@ public class Controller implements Runnable {
 
                 //wait for the duration of the job to elapse
                 Thread.sleep(stopTime - System.currentTimeMillis());
-                System.out.println("time of the collection has finished");                
+                System.out.println("time of the collection has finished");
                 MsgInterrupt msgInterrupt = new MsgInterrupt();
                 actorCollectionMentions.tell(msgInterrupt, ActorRef.noSender());
 
