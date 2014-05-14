@@ -84,6 +84,9 @@ public class ConvertStatus {
             twitterStatus.setInReplyToStatusId(status.getInReplyToStatusId());
             twitterStatus.setInReplyToUserId(status.getInReplyToUserId());
             twitterStatus.setIsRetweet(status.isRetweet());
+            twitterStatus.setRetweetCount(status.getRetweetCount());
+            twitterStatus.setFavoriteCount(status.getFavoriteCount());
+            
             if (status.getGeoLocation() != null) {
                 twitterStatus.setLatitude(status.getGeoLocation().getLatitude());
                 twitterStatus.setLongitude(status.getGeoLocation().getLongitude());

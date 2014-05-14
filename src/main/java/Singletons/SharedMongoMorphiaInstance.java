@@ -5,13 +5,17 @@
  */
 package Singletons;
 
+import Control.Admin;
 import Model.AccessTokenPlus;
 import Model.Job;
 import Model.JobInfo;
 import Model.Session;
 import Model.TwitterStatus;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -75,7 +79,9 @@ public class SharedMongoMorphiaInstance {
 //    @PostConstruct
     public static void loadConfiguration() {
         try {
-            mongoClient = new MongoClient("199.59.247.173", 27017);
+            MongoCredential credential = MongoCredential.createMongoCRCredential("admin", "admin", "$$PASdefumee1984".toCharArray());
+            ServerAddress server = new ServerAddress(Admin.ipMongo(), 27017);
+            mongoClient = new MongoClient(server, Arrays.asList(credential));
             morphia = new Morphia();
             dsAccessToken = morphia.createDatastore(mongoClient, "AccessToken");
             dsJobs = morphia.createDatastore(mongoClient, "Job");
@@ -118,5 +124,5 @@ public class SharedMongoMorphiaInstance {
     public static Datastore getDsTweets() {
         return dsTweets;
     }
- 
+
 }

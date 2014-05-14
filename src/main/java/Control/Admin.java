@@ -49,7 +49,11 @@ public class Admin {
     static boolean isServerDispatchLocal = false;
 
     public static String ipServerDispatch() {
-        return isServerDispatchLocal ? "localhost:8080/ServerDispatcher/" : "199.59.247.173:8080/ServerDispatcher-1.0-SNAPSHOT/";
+        return isServerDispatchLocal ? "localhost:8080/ServerDispatcher/" : "188.40.106.208:8080/ServerDispatcher-1.0-SNAPSHOT/";
+    }
+
+    public static String ipMongo() {
+        return "188.40.134.200";
     }
 
 }

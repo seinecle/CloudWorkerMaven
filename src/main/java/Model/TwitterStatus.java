@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Id;
 
 /*
@@ -72,6 +71,9 @@ public class TwitterStatus {
     String text;
     TwitterUser user;
     boolean isRetweet;
+    String lang;
+    int retweetCount;
+    int favoriteCount;
 
     List<MediaEntities> mediaEntities;
 
@@ -220,6 +222,32 @@ public class TwitterStatus {
     public void setMediaEntities(List<MediaEntities> mediaEntities) {
         this.mediaEntities = mediaEntities;
     }
+
+    public String getLang() {
+        return lang;
+    }
+
+    public void setLang(String lang) {
+        this.lang = lang;
+    }
+
+    public int getRetweetCount() {
+        return retweetCount;
+    }
+
+    public void setRetweetCount(int retweetCount) {
+        this.retweetCount = retweetCount;
+    }
+
+    public int getFavoriteCount() {
+        return favoriteCount;
+    }
+
+    public void setFavoriteCount(int favoriteCount) {
+        this.favoriteCount = favoriteCount;
+    }
+    
+    
 
     public static class Hashtag {
 
