@@ -59,11 +59,15 @@ public class LaunchTweetStreamResource {
     @Produces("text/plain")
     public String stopApp(@QueryParam("jobId") String jobId) {
 
+        
+        
         if (SharedActorSystem.getSystem() == null) {
             SharedActorSystem.loadConfiguration();
         }
         ActorSystem system;
         system = SharedActorSystem.getSystem();
+        
+        
 
         ActorSelection actorSelection = system.actorSelection("controller" + jobId);
         MsgInterrupt msgInterrupt = new MsgInterrupt();

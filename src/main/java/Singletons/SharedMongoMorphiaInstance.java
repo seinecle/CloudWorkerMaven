@@ -10,7 +10,7 @@ import Model.AccessTokenPlus;
 import Model.Job;
 import Model.JobInfo;
 import Model.Session;
-import Model.TwitterStatus;
+import Model.Tweet;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
@@ -18,9 +18,6 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
-//import javax.ejb.Singleton;
-//import javax.ejb.Startup;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 
@@ -87,13 +84,13 @@ public class SharedMongoMorphiaInstance {
             dsJobs = morphia.createDatastore(mongoClient, "Job");
             dsJobsInfos = morphia.createDatastore(mongoClient, "JobInfo");
             dsSessions = morphia.createDatastore(mongoClient, "Session");
-            dsTweets = morphia.createDatastore(mongoClient, "TwitterStatus");
+            dsTweets = morphia.createDatastore(mongoClient, "Tweet");
 
             morphia.map(AccessTokenPlus.class);
             morphia.map(Job.class);
             morphia.map(JobInfo.class);
             morphia.map(Session.class);
-            morphia.map(TwitterStatus.class);
+            morphia.map(Tweet.class);
 
         } catch (UnknownHostException ex) {
             Logger.getLogger(SharedMongoMorphiaInstance.class.getName()).log(Level.SEVERE, null, ex);

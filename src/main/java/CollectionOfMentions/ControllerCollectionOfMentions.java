@@ -12,11 +12,14 @@ import Model.AccessTokenPlus;
 import Model.Job;
 import Model.JobInfo;
 import Model.Session;
+import Model.Tweet;
 import Model.TwitterStatus;
 import OAuth.MyOwnTwitterFactory;
 import Singletons.SharedMongoMorphiaInstance;
 import Utils.ConvertStatus;
 import akka.actor.UntypedActor;
+import com.mongodb.MongoException;
+import com.mongodb.WriteConcern;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -29,7 +32,7 @@ import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.StatusListener;
-import twitter4j.Twitter;
+import twitter4j.TwitterObjectFactory;
 import twitter4j.TwitterStream;
 import twitter4j.auth.AccessToken;
 
@@ -111,7 +114,7 @@ public class ControllerCollectionOfMentions extends UntypedActor {
     ConvertStatus convertStatus;
     String jobId;
     int nbTweets = 0;
-    TwitterStatus twitterStatus;
+    Tweet tweet;
     UUID jobUUID;
 
     public ControllerCollectionOfMentions() {
@@ -164,39 +167,39 @@ public class ControllerCollectionOfMentions extends UntypedActor {
         }
 
         if (message instanceof MsgInterrupt) {
-            if (!twitterStatuses.isEmpty()) {
-                dsTweets.save(twitterStatuses);
-                opsJob = dsJobs.createUpdateOperations(Job.class).addAll("statuses", statusesIds, true);
-                dsJobs.update(updateQueryJob, opsJob);
-            }
-            //updating progress a last time;
-            progressLong = (Long) ((System.currentTimeMillis() - startDateTime.getMillis()) * 100 / (stopTime - startDateTime.getMillis()));
-            System.out.println("progress before closing: " + progressLong);
-            System.out.println("(progress is put back to 99% to allow for Excel file creation, after which it will be set to 100%");
-
-            progress = progressLong.intValue();
-            if (progress > 99) {
-                progress = 99;
-            }
-            opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress);
-            dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
-
-            opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("nbTweets", nbTweets);
-            dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
-
-            //**************************************
-            //recording the time when the job ended
-            opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("end", System.currentTimeMillis());
-            dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
-            //**************************************
+//            if (!twitterStatuses.isEmpty()) {
+//                dsTweets.save(twitterStatuses);
+//                opsJob = dsJobs.createUpdateOperations(Job.class).addAll("statuses", statusesIds, true);
+//                dsJobs.update(updateQueryJob, opsJob);
+//            }
+//            //updating progress a last time;
+//            progressLong = (Long) ((System.currentTimeMillis() - startDateTime.getMillis()) * 90 / (stopTime - startDateTime.getMillis()));
+//            System.out.println("progress before closing: " + progressLong);
+//            System.out.println("(progress is put back to 99% to allow for Excel file creation, after which it will be set to 100%");
+//
+//            progress = progressLong.intValue();
+//            if (progress > 90) {
+//                progress = 90;
+//            }
+//            opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress);
+//            dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
+//
+//            opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("nbTweets", nbTweets);
+//            dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
+//
+//            //**************************************
+//            //recording the time when the job ended
+//            opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("end", System.currentTimeMillis());
+//            dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
+//            //**************************************
 
             try {
                 twitterStream.shutdown();
+                System.out.println("shutdown of twitter stream was successful");
             } catch (Exception e) {
-                System.out.println("exception when shutdown of twitter stream");
+                System.out.println("exception when shutdown of twitter stream from stop message");
                 System.out.println("error: " + e.getMessage());
             }
-            System.out.println("shutdown of twitter stream was successful");
             //Send msg to central server about completion.
             SenderMsgToCentralServer sender = new SenderMsgToCentralServer();
             sender.streamIsTerminatedOK(idGephi, String.valueOf(jobStart), app);
@@ -257,20 +260,13 @@ public class ControllerCollectionOfMentions extends UntypedActor {
 
                         dsTweets.save(twitterStatuses);
                     }
-                    //updating progress a last time;
-                    progressLong = (Long) ((System.currentTimeMillis() - startDateTime.getMillis()) * 100 / (stopTime - startDateTime.getMillis()));
-                    System.out.println("progress before closing: " + progressLong);
-                    System.out.println("(progress is put back to 99% to allow for Excel file creation, after which it will be set to 100%");
 
-                    progress = progressLong.intValue();
-                    if (progress > 99) {
-                        progress = 99;
-                    }
+                    // 91 is the code for twitter stream has stopped collecting.
+                    progress = 91;
 
                     //recording the progress, nbTweets and end time of the job
                     opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress).set("nbTweets", nbTweets).set("end", System.currentTimeMillis());
                     dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
-
 
                     synchronized (lock) {
                         lock.notify();
@@ -278,45 +274,54 @@ public class ControllerCollectionOfMentions extends UntypedActor {
 
                 } else {
 
-//                    System.out.println("@" + status.getUser().getScreenName() + " - " + status.getText());
-                    twitterStatus = convertStatus.convertOneToTwitterStatus(status);
-                    twitterStatus.setJobId(jobUUID);
-                    twitterStatuses.add(twitterStatus);
+                    tweet = new Tweet();
+                    tweet.setStatus(TwitterObjectFactory.getRawJSON(status));
+                    tweet.setIdTweet(nbTweets);
+                    tweet.setJobId(jobUUID);
+////                    System.out.println("@" + status.getUser().getScreenName() + " - " + status.getText());
+//                    twitterStatus = convertStatus.convertOneToTwitterStatus(status);
+//                    twitterStatus.setJobId(jobUUID);
+//                    twitterStatuses.add(twitterStatus);
+//                    
+//                    
+//
+//                    statusesIds.add(status.getId());
+//                    timeSinceLastStatus = System.currentTimeMillis() - timeLastStatus;
+//
+//                    //**************************************
+//                    //adjusting the frequency of saves to DB, function of number of statuses received per second
+//                    if (timeSinceLastStatus < 200) {
+//                        sizeBatch = 100;
+//                    } else {
+//                        sizeBatch = 25;
+//                    }
+//                    timeLastStatus = System.currentTimeMillis();
+//                    progressLong = (Long) ((System.currentTimeMillis() - startDateTime.getMillis()) * 98 / (stopTime - startDateTime.getMillis()));
 
-                    statusesIds.add(status.getId());
-                    timeSinceLastStatus = System.currentTimeMillis() - timeLastStatus;
+//                    if (statusesIds.size() > sizeBatch || progressLong.intValue() > progress) {
+                    //**************************************
+                    //saving statuses to the db.
+                    try {
+                        dsTweets.save(tweet,WriteConcern.UNACKNOWLEDGED);
+                    } catch (MongoException m) {
+                        System.out.println("saving of statuses to the db failed");
+                    }
+//                        twitterStatuses = new ArrayList();
+//
+//                        //**************************************
+//                        //updating list of status ids of the job.
+//                        opsJob = dsJobs.createUpdateOperations(Job.class).addAll("statuses", statusesIds, true);
+//                        dsJobs.update(updateQueryJob, opsJob);
+//                        statusesIds = new ArrayList();
+//
+//                        //updating progress.
+//                        System.out.println("progress: " + progressLong);
+//                        progress = progressLong.intValue();
+//                        opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress).set("nbTweets", nbTweets);
+//                        dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
 
                     //**************************************
-                    //adjusting the frequency of saves to DB, function of number of statuses received per second
-                    if (timeSinceLastStatus < 200) {
-                        sizeBatch = 100;
-                    } else {
-                        sizeBatch = 25;
-                    }
-                    timeLastStatus = System.currentTimeMillis();
-                    progressLong = (Long) ((System.currentTimeMillis() - startDateTime.getMillis()) * 100 / (stopTime - startDateTime.getMillis()));
-
-                    if (statusesIds.size() > sizeBatch || progressLong.intValue() > progress) {
-
-                        //**************************************
-                        //saving statuses to the db.
-                        dsTweets.save(twitterStatuses);
-                        twitterStatuses = new ArrayList();
-
-                        //**************************************
-                        //updating list of status ids of the job.
-                        opsJob = dsJobs.createUpdateOperations(Job.class).addAll("statuses", statusesIds, true);
-                        dsJobs.update(updateQueryJob, opsJob);
-                        statusesIds = new ArrayList();
-
-                        //updating progress.
-                        System.out.println("progress: " + progressLong);
-                        progress = progressLong.intValue();
-                        opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("progress", progress).set("nbTweets", nbTweets);
-                        dsJobsInfo.update(updateQueryJobInfo, opsJobInfo);
-
-                        //**************************************
-                    }
+//                    }
                 }
             }
 

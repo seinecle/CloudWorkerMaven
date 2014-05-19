@@ -57,9 +57,10 @@ import org.apache.http.util.EntityUtils;
 public class SenderMsgToCentralServer {
 
     public void streamIsTerminatedOK(String idGephi, String jobStart, String app) throws URISyntaxException, IOException {
+
         DefaultHttpClient httpclient = new DefaultHttpClient();
         URIBuilder builder = new URIBuilder();
-        builder.setScheme("http").setHost(Admin.ipServerDispatch()+"webresources/CommunicationServers/TerminatedOK")
+        builder.setScheme("http").setHost(Admin.ipServerDispatch() + "webresources/CommunicationServers/TerminatedOK")
                 .setParameter("jobStart", jobStart)
                 .setParameter("idGephi", idGephi)
                 .setParameter("app", app);
@@ -67,14 +68,27 @@ public class SenderMsgToCentralServer {
         System.out.println("uri: " + uri);
         HttpGet httpget = new HttpGet(uri);
 
-        HttpResponse response = httpclient.execute(httpget);
-        HttpEntity entity = response.getEntity();
-        if (entity == null) {
-            System.out.println("empty response to API call");
-        }
-        String responseString = EntityUtils.toString(entity);
-        System.out.println(responseString);
+        HttpResponse response;
+        HttpEntity entity;
+        int codeStatus = 0;
+        int attempts = 0;
+        boolean success = false;
 
+        while (!success && attempts < 4) {
+            attempts++;
+
+            response = httpclient.execute(httpget);
+            entity = response.getEntity();
+            EntityUtils.consumeQuietly(entity);
+            codeStatus = response.getStatusLine().getStatusCode();
+            success = (codeStatus == 200);
+        }
+        if (!success) {
+            System.out.println("server dispatcher could not be reached to tell about job termination - 3 failed attempts.");
+        }else{
+            System.out.println("message correctly sent to server dispatcherabout cloudbees job termination");
+            
+        }
     }
 
 }

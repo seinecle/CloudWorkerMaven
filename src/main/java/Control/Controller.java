@@ -13,8 +13,6 @@ import Singletons.SharedMongoMorphiaInstance;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.mongodb.morphia.Datastore;
 
 /*
@@ -100,33 +98,15 @@ public class Controller implements Runnable {
 
         if (mention != null && !mention.isEmpty()) {
 
-            try {
-
-                Datastore dsSessions = SharedMongoMorphiaInstance.getDsSessions();
-                Session session = dsSessions.find(Session.class).field("idGephi").equal(idGephi).get();
-
-                if (session == null) {
-                    return;
-                }
-                system = SharedActorSystem.getSystem();
-
-                final ActorRef actorCollectionMentions = system.actorOf(Props.create(ControllerCollectionOfMentions.class), "controller" + jobId);
-                System.out.println("hours: " + forHours);
-
-                MsgLaunchCollectionMentionsTwitter msg = new MsgLaunchCollectionMentionsTwitter(jobId, app, idGephi, jobStartString, nowString, fromHour, fromDay, fromMonth, fromYear, mention, forMinutes, forHours, forDays);
-                actorCollectionMentions.tell(msg, ActorRef.noSender());
-
-                Long stopTime = System.currentTimeMillis() + forMinutes * 60000 + forHours * 3600000 + forDays * 3600000 * 24 + 3000;
-
-                //wait for the duration of the job to elapse
-                Thread.sleep(stopTime - System.currentTimeMillis());
-                System.out.println("time of the collection has finished");
-                MsgInterrupt msgInterrupt = new MsgInterrupt();
-                actorCollectionMentions.tell(msgInterrupt, ActorRef.noSender());
-
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
+            Datastore dsSessions = SharedMongoMorphiaInstance.getDsSessions();
+            Session session = dsSessions.find(Session.class).field("idGephi").equal(idGephi).get();
+            if (session == null) {
+                return;
             }
+            system = SharedActorSystem.getSystem();
+            final ActorRef actorCollectionMentions = system.actorOf(Props.create(ControllerCollectionOfMentions.class), "controller" + jobId);
+            MsgLaunchCollectionMentionsTwitter msg = new MsgLaunchCollectionMentionsTwitter(jobId, app, idGephi, jobStartString, nowString, fromHour, fromDay, fromMonth, fromYear, mention, forMinutes, forHours, forDays);
+            actorCollectionMentions.tell(msg, ActorRef.noSender());
         } else {
             if (terminate.equals("yes")) {
                 system = SharedActorSystem.getSystem();

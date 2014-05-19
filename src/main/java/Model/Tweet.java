@@ -4,65 +4,52 @@
  */
 package Model;
 
-import java.io.Serializable;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.UUID;
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Id;
 
-public class Tweet implements Serializable {
+public class Tweet {
 
-    private String source;
-    private TwitterUser source_user;
-    private String text;
-    private String target;
-    private String monthYear;
-    private Date date;
+    @Id
+    private ObjectId id;
 
-    public Tweet() {
+    UUID jobId;
+    long idTweet;
+    String status;
+    String lang;
+
+    public UUID getJobId() {
+        return jobId;
     }
 
-
-    public String getSource() {
-        return source;
+    public void setJobId(UUID jobId) {
+        this.jobId = jobId;
     }
 
-    public void setSource(String source) {
-        this.source = source;
+    public long getIdTweet() {
+        return idTweet;
     }
 
-    public String getText() {
-        return text;
+    public void setIdTweet(long idTweet) {
+        this.idTweet = idTweet;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    public String getStatus() {
+        return status;
     }
 
-    public String getTarget() {
-        return target;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
-    public void setTarget(String target) {
-        this.target = target.replaceAll("\\@", "").trim();
+    public String getLang() {
+        return lang;
     }
 
-    public Date getDate() {
-        return date;
+    public void setLang(String lang) {
+        this.lang = lang;
     }
+    
+    
 
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public void setMonthYear(String monthYear) {
-        this.monthYear = monthYear;
-    }
-
-
-    public TwitterUser getSource_user() {
-        return this.source_user;
-    }
-
-    public void setSource_user(TwitterUser source_user) {
-        this.source_user = source_user;
-    }
 }

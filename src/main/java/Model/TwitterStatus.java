@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
+import twitter4j.Status;
 
 /*
  Copyright 2008-2013 Clement Levallois
