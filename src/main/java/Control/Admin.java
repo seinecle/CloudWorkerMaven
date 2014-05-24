@@ -47,6 +47,7 @@ package Control;
 public class Admin {
 
     static boolean isServerDispatchLocal = false;
+    static boolean test = true;
 
     public static String ipServerDispatch() {
         return isServerDispatchLocal ? "localhost:8080/ServerDispatcher/" : "188.40.106.208:8080/ServerDispatcher-1.0-SNAPSHOT/";
@@ -55,5 +56,11 @@ public class Admin {
     public static String ipMongo() {
         return "188.40.134.200";
     }
+
+    public static boolean isTest() {
+        return test;
+    }
+    
+    
 
 }

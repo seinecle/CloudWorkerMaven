@@ -8,6 +8,7 @@ import APICalls.MsgInterrupt;
 import APICalls.MsgLaunchCollectionMentionsTwitter;
 import CollectionOfMentions.ControllerCollectionOfMentions;
 import Model.Session;
+import Model.User;
 import Singletons.SharedActorSystem;
 import Singletons.SharedMongoMorphiaInstance;
 import akka.actor.ActorRef;
@@ -103,9 +104,12 @@ public class Controller implements Runnable {
             if (session == null) {
                 return;
             }
+            Datastore dsUsers = SharedMongoMorphiaInstance.getDsUsers();
+            User user = dsUsers.find(User.class).field("name").equal(session.getUser()).get();
+
             system = SharedActorSystem.getSystem();
             final ActorRef actorCollectionMentions = system.actorOf(Props.create(ControllerCollectionOfMentions.class), "controller" + jobId);
-            MsgLaunchCollectionMentionsTwitter msg = new MsgLaunchCollectionMentionsTwitter(jobId, app, idGephi, jobStartString, nowString, fromHour, fromDay, fromMonth, fromYear, mention, forMinutes, forHours, forDays);
+            MsgLaunchCollectionMentionsTwitter msg = new MsgLaunchCollectionMentionsTwitter(user.getTwitterConsumerKey(),user.getTwitterConsumerSecret(),user.getTwitterAccessToken(),user.getTwitterAccessTokenSecret(),jobId, app, idGephi, jobStartString, nowString, fromHour, fromDay, fromMonth, fromYear, mention, forMinutes, forHours, forDays);
             actorCollectionMentions.tell(msg, ActorRef.noSender());
         } else {
             if (terminate.equals("yes")) {

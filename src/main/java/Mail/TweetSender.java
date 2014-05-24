@@ -6,7 +6,6 @@
 package Mail;
 
 import Model.AccessTokenPlus;
-import Model.Job;
 import OAuth.MyOwnTwitterFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,30 +54,26 @@ import twitter4j.TwitterException;
  */
 public class TweetSender {
 
-    public void jobDone(Datastore accessTokens, Job job) {
-        boolean shout = false;
-        if (shout) {
-            try {
-                MyOwnTwitterFactory fact = new MyOwnTwitterFactory();
-                Twitter twitter = fact.createOneTwitterInstance();
-                AccessTokenPlus accessTokenSeinecle = accessTokens.find(AccessTokenPlus.class).field("screen_name").equal("seinecle").get();
-                twitter.setOAuthAccessToken(accessTokenSeinecle);
-                twitter.updateStatus("@" + job.getOwnerScreenName() + ", your job is now ready. #" + String.valueOf(job.getStart()).substring(5));
-            } catch (TwitterException ex) {
-                Logger.getLogger(TweetSender.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-
-    public void jobGotMessedUp(Datastore accessTokens, Job job) {
-        try {
-            MyOwnTwitterFactory fact = new MyOwnTwitterFactory();
-            Twitter twitter = fact.createOneTwitterInstance();
-            AccessTokenPlus accessTokenSeinecle = accessTokens.find(AccessTokenPlus.class).field("screen_name").equal("seinecle").get();
-            twitter.setOAuthAccessToken(accessTokenSeinecle);
-            twitter.updateStatus("@" + job.getOwnerScreenName() + ", your job got interrupted.");
-        } catch (TwitterException ex) {
-            Logger.getLogger(TweetSender.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
+//    public void jobDone(Datastore accessTokens, Job job) {
+//        boolean shout = false;
+//        if (shout) {
+//            MyOwnTwitterFactory fact = new MyOwnTwitterFactory();
+//            Twitter twitter = fact.createOneTwitterInstance();
+//            AccessTokenPlus accessTokenSeinecle = accessTokens.find(AccessTokenPlus.class).field("screen_name").equal("seinecle").get();
+//            twitter.setOAuthAccessToken(accessTokenSeinecle);
+//            twitter.updateStatus("@" + job.getOwnerScreenName() + ", your job is now ready. #" + String.valueOf(job.getStart()).substring(5));
+//        }
+//    }
+//
+//    public void jobGotMessedUp(Datastore accessTokens, Job job) {
+//        try {
+//            MyOwnTwitterFactory fact = new MyOwnTwitterFactory();
+//            Twitter twitter = fact.createOneTwitterInstance();
+//            AccessTokenPlus accessTokenSeinecle = accessTokens.find(AccessTokenPlus.class).field("screen_name").equal("seinecle").get();
+//            twitter.setOAuthAccessToken(accessTokenSeinecle);
+//            twitter.updateStatus("@" + job.getOwnerScreenName() + ", your job got interrupted.");
+//        } catch (TwitterException ex) {
+//            Logger.getLogger(TweetSender.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    }
 }

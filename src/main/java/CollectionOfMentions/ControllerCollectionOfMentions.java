@@ -9,14 +9,11 @@ import APICalls.MsgInterrupt;
 import APICalls.MsgLaunchCollectionMentionsTwitter;
 import Control.SenderMsgToCentralServer;
 import Model.AccessTokenPlus;
-import Model.Job;
 import Model.JobInfo;
 import Model.Session;
 import Model.Tweet;
-import Model.TwitterStatus;
 import OAuth.MyOwnTwitterFactory;
 import Singletons.SharedMongoMorphiaInstance;
-import Utils.ConvertStatus;
 import akka.actor.UntypedActor;
 import com.mongodb.MongoException;
 import com.mongodb.WriteConcern;
@@ -79,7 +76,6 @@ public class ControllerCollectionOfMentions extends UntypedActor {
 
     private String mention;
     private String app;
-//    private List<Status> statuses;
     private TwitterStream twitterStream;
     AccessToken accessToken;
     int numberOfMinutes;
@@ -87,17 +83,12 @@ public class ControllerCollectionOfMentions extends UntypedActor {
     int numberOfDays;
     private String now;
 
-    Datastore dsJobs;
     Datastore dsJobsInfo;
     Datastore dsSessions;
     Datastore dsTweets;
 
     UpdateOperations<JobInfo> opsJobInfo;
     Query<JobInfo> updateQueryJobInfo;
-    UpdateOperations<Job> opsJob;
-    Query<Job> updateQueryJob;
-    UpdateOperations<TwitterStatus> opsStatus;
-    Query<TwitterStatus> updateQueryStatus;
 
     int sizeBatch = 25;
     long timeLastStatus = 0L;
@@ -110,12 +101,14 @@ public class ControllerCollectionOfMentions extends UntypedActor {
     int progress;
     Long progressLong;
     List<Long> statusesIds;
-    List<TwitterStatus> twitterStatuses = new ArrayList();
-    ConvertStatus convertStatus;
     String jobId;
     int nbTweets = 0;
     Tweet tweet;
     UUID jobUUID;
+    String ck;
+    String cks;
+    String at;
+    String ats;
 
     public ControllerCollectionOfMentions() {
     }
@@ -125,6 +118,10 @@ public class ControllerCollectionOfMentions extends UntypedActor {
         if (message instanceof MsgLaunchCollectionMentionsTwitter) {
 
             MsgLaunchCollectionMentionsTwitter msg = (MsgLaunchCollectionMentionsTwitter) message;
+            this.ck = msg.getCk();
+            this.cks = msg.getCks();
+            this.at = msg.getAt();
+            this.ats = msg.getAts();
             this.jobId = msg.getJobId();
             this.idGephi = msg.getIdGephi();
             this.jobStart = Long.decode(msg.getJobStart());
@@ -137,7 +134,6 @@ public class ControllerCollectionOfMentions extends UntypedActor {
 
             this.numberOfDays = msg.getForDays();
 
-            this.dsJobs = SharedMongoMorphiaInstance.getDsJobs();
             this.dsJobsInfo = SharedMongoMorphiaInstance.getDsJobsInfos();
             this.dsSessions = SharedMongoMorphiaInstance.getDsSessions();
             this.dsTweets = SharedMongoMorphiaInstance.getDsTweets();
@@ -150,10 +146,10 @@ public class ControllerCollectionOfMentions extends UntypedActor {
             accessToken = dsAccessToken.find(AccessTokenPlus.class).field("screen_name").equal(currentUser).get();
 
             MyOwnTwitterFactory factory = new MyOwnTwitterFactory();
-            twitterStream = factory.createOneTwitterStreamInstance(accessToken);
+//            twitterStream = factory.createOneTwitterStreamInstance(accessToken);
+            twitterStream = factory.createOneTwitterStreamInstanceFromApp(ck,cks,at,ats);
 
             updateQueryJobInfo = dsJobsInfo.createQuery(JobInfo.class).field("idGephi").equal(this.idGephi).field("start").equal(jobStart);
-            updateQueryJob = dsJobs.createQuery(Job.class).field("idGephi").equal(this.idGephi).field("start").equal(jobStart);
 
             run();
 
@@ -238,8 +234,13 @@ public class ControllerCollectionOfMentions extends UntypedActor {
             stopTime = startDateTime.getMillis() + 3600000 * 24 * 7;
         }
 
-        statusesIds = new ArrayList();
-        convertStatus = new ConvertStatus();
+        //registers actual start time in the status field
+        opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("status", String.valueOf(startDateTime.getMillis()));
+        dsJobsInfo.update(updateQueryJobInfo, opsJobInfo, false, WriteConcern.UNACKNOWLEDGED);
+
+         //registers actual end time in the end field
+        opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("end", String.valueOf(stopTime));
+        dsJobsInfo.update(updateQueryJobInfo, opsJobInfo, false, WriteConcern.UNACKNOWLEDGED);
 
         final Object lock = new Object();
 
@@ -254,13 +255,12 @@ public class ControllerCollectionOfMentions extends UntypedActor {
                     //updating the job a last time;
                     //**************************************
                     //saving statuses to the db.
-                    if (!twitterStatuses.isEmpty()) {
-                        opsJob = dsJobs.createUpdateOperations(Job.class).addAll("statuses", statusesIds, true);
-                        dsJobs.update(updateQueryJob, opsJob);
-
-                        dsTweets.save(twitterStatuses);
-                    }
-
+//                    if (!twitterStatuses.isEmpty()) {
+//                        opsJob = dsJobs.createUpdateOperations(Job.class).addAll("statuses", statusesIds, true);
+//                        dsJobs.update(updateQueryJob, opsJob);
+//
+//                        dsTweets.save(twitterStatuses);
+//                    }
                     // 91 is the code for twitter stream has stopped collecting.
                     progress = 91;
 
@@ -302,7 +302,9 @@ public class ControllerCollectionOfMentions extends UntypedActor {
                     //**************************************
                     //saving statuses to the db.
                     try {
-                        dsTweets.save(tweet,WriteConcern.UNACKNOWLEDGED);
+                        dsTweets.save(tweet, WriteConcern.UNACKNOWLEDGED);
+                        opsJobInfo = dsJobsInfo.createUpdateOperations(JobInfo.class).set("nbTweets", nbTweets);
+                        dsJobsInfo.update(updateQueryJobInfo, opsJobInfo, false, WriteConcern.UNACKNOWLEDGED);
                     } catch (MongoException m) {
                         System.out.println("saving of statuses to the db failed");
                     }

@@ -5,6 +5,7 @@
  */
 package OAuth;
 
+import Control.Admin;
 import Private.APIkeys;
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
@@ -75,8 +76,8 @@ public class MyOwnTwitterFactory {
         ConfigurationBuilder builder = new ConfigurationBuilder();
         builder.setOAuthConsumerKey(APIkeys.getTwitterAPIKey());
         builder.setOAuthConsumerSecret(APIkeys.getTwitterAPISecret());
-        System.out.println("AT: "+accessToken.getToken());
-        System.out.println("ATS: "+accessToken.getTokenSecret());
+        System.out.println("AT: " + accessToken.getToken());
+        System.out.println("ATS: " + accessToken.getTokenSecret());
         builder.setOAuthAccessToken(accessToken.getToken());
         builder.setOAuthAccessTokenSecret(accessToken.getTokenSecret());
         builder.setJSONStoreEnabled(true);
@@ -87,7 +88,29 @@ public class MyOwnTwitterFactory {
         twitterStream = factory.getInstance();
 
         return twitterStream;
+    }
 
+    public TwitterStream createOneTwitterStreamInstanceFromApp(String APIKey, String APIKeySecret, String accessToken, String accessTokenSecret) {
+        TwitterStream twitterStream;
+        ConfigurationBuilder builder = new ConfigurationBuilder();
+        if (!Admin.isTest()) {
+            builder.setOAuthConsumerKey(APIKey);
+            builder.setOAuthConsumerSecret(APIKeySecret);
+            builder.setOAuthAccessToken(accessToken);
+            builder.setOAuthAccessTokenSecret(accessTokenSecret);
+            builder.setJSONStoreEnabled(true);
+        } else {
+            builder.setOAuthConsumerKey("KNjw1QTK1hJKx8LpK6X6rg");
+            builder.setOAuthConsumerSecret("ikX9blowuh3FqFAkIg5LQi5voLOV413EWzPsDl77uU");
+            builder.setOAuthAccessToken("31805620-QQy8TFFDKRxWyOUVnY08UcxT5bzrFhRWUa0A3lEW3");
+            builder.setOAuthAccessTokenSecret("iJuCkdgrfIpGn5odyF2evMSvAsovreeEV6cZU5ihVVI7j");
+            builder.setJSONStoreEnabled(true);
+        }
+        Configuration configuration = builder.build();
+        TwitterStreamFactory factory = new TwitterStreamFactory(configuration);
+        twitterStream = factory.getInstance();
+
+        return twitterStream;
     }
 
 }

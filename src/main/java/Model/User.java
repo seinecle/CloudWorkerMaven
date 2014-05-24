@@ -3,12 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package Model;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Id;
 
 /*
@@ -50,49 +48,79 @@ import org.mongodb.morphia.annotations.Id;
  Contributor(s): Clement Levallois
 
  */
-public class Job {
-
+public class User {
+    
     @Id
     private ObjectId id;
-    private List<Long> statuses;
-    private long start;
-    private String ownerScreenName;
-    private String idGephi;
+    String name;
+    String twitterConsumerKey;
+    String twitterConsumerSecret;
+    String twitterAccessToken;
+    String twitterAccessTokenSecret;
+    String flickrKey;
+    String flickrSecret;
 
-    public Job() {
-        statuses = new ArrayList();
+    public User() {
     }
 
-    public List<Long> getStatuses() {
-        return statuses;
+    public String getName() {
+        return name;
     }
 
-    public void setStatuses(List<Long> statuses) {
-        this.statuses = statuses;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public long getStart() {
-        return start;
+    public String getTwitterConsumerKey() {
+        return twitterConsumerKey;
     }
 
-    public void setStart(long start) {
-        this.start = start;
+    public void setTwitterConsumerKey(String twitterConsumerKey) {
+        this.twitterConsumerKey = twitterConsumerKey;
     }
 
-    public String getOwnerScreenName() {
-        return ownerScreenName;
+    public String getTwitterConsumerSecret() {
+        return twitterConsumerSecret;
     }
 
-    public void setOwnerScreenName(String ownerScreenName) {
-        this.ownerScreenName = ownerScreenName;
+    public void setTwitterConsumerSecret(String twitterConsumerSecret) {
+        this.twitterConsumerSecret = twitterConsumerSecret;
     }
 
-    public String getIdGephi() {
-        return idGephi;
+    public String getTwitterAccessToken() {
+        return twitterAccessToken;
     }
 
-    public void setIdGephi(String idGephi) {
-        this.idGephi = idGephi;
+    public void setTwitterAccessToken(String twitterAccessToken) {
+        this.twitterAccessToken = twitterAccessToken;
     }
+
+    public String getTwitterAccessTokenSecret() {
+        return twitterAccessTokenSecret;
+    }
+
+    public void setTwitterAccessTokenSecret(String twitterAccessTokenSecret) {
+        this.twitterAccessTokenSecret = twitterAccessTokenSecret;
+    }
+
+    public String getFlickrKey() {
+        return flickrKey;
+    }
+
+    public void setFlickrKey(String flickrKey) {
+        this.flickrKey = flickrKey;
+    }
+
+    public String getFlickrSecret() {
+        return flickrSecret;
+    }
+
+    public void setFlickrSecret(String flickrSecret) {
+        this.flickrSecret = flickrSecret;
+    }
+    
+    
+    
+            
 
 }
